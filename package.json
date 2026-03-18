@@ -1,7 +1,7 @@
 {
   "name": "calendly-cli",
-  "version": "0.1.0",
-  "description": "Agent-native CLI and MCP server for the Calendly API",
+  "version": "1.0.0",
+  "description": "Agent-native CLI and MCP server for the Calendly API — 40 tools for scheduling automation",
   "type": "module",
   "bin": {
     "calendly": "dist/index.js"
@@ -13,8 +13,17 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "AGENTS.md"
   ],
+  "homepage": "https://github.com/bcharleson/calendly-cli",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bcharleson/calendly-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bcharleson/calendly-cli/issues"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsx src/index.ts",
