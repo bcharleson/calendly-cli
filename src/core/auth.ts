@@ -17,8 +17,8 @@ export async function resolveToken(flagToken?: string): Promise<string> {
   throw new AuthError(
     'No Calendly token found.\n\n' +
       'Options:\n' +
-      '  1. Run: calendly auth login\n' +
-      '  2. Set env var: CALENDLY_TOKEN=<token>\n' +
-      '  3. Pass flag: --token <token>',
+      '  1. Run: calendly login\n' +
+      '  2. Set env var: export CALENDLY_TOKEN=<token>\n' +
+      '  3. Pass flag: calendly --token <token> <command>',
   );
 }

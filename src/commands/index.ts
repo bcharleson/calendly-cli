@@ -74,10 +74,18 @@ export function registerAllCommands(program: Command): void {
         }
       }
 
-      // Register options
+      // Register command-specific options
       for (const opt of cmdDef.cliMappings.options ?? []) {
         sub.option(opt.flags, opt.description ?? '');
       }
+
+      // Bug fix: add display options directly on each subcommand so Commander
+      // parses them when they appear *after* the subcommand name (the common case).
+      // Without this, --pretty/--quiet/--fields are only parsed when before the subcommand.
+      sub
+        .option('--pretty', 'Pretty-print JSON output')
+        .option('--quiet', 'Suppress output (exit code only)')
+        .option('--fields <fields>', 'Comma-separated fields to include in output');
 
       // Add examples to help text
       if (cmdDef.examples?.length) {
@@ -86,8 +94,12 @@ export function registerAllCommands(program: Command): void {
 
       sub.action(async (...actionArgs: any[]) => {
         const instanceOpts = actionArgs[actionArgs.length - 2] as Record<string, any>;
+        // Merge subcommand opts with globals (--token lives on program)
         const globalOpts = sub.optsWithGlobals() as GlobalOptions & Record<string, any>;
-        if (globalOpts.pretty) globalOpts.output = 'pretty';
+        // Prefer subcommand-level pretty/quiet/fields if set, fall back to global
+        if (instanceOpts.pretty) globalOpts.pretty = true;
+        if (instanceOpts.quiet) globalOpts.quiet = true;
+        if (instanceOpts.fields) globalOpts.fields = instanceOpts.fields;
 
         try {
           const token = await resolveToken(globalOpts.token);

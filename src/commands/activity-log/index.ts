@@ -7,8 +7,8 @@ export const activityLogListCommand: CommandDefinition = {
   group: 'activity-log',
   subcommand: 'list',
   description:
-    'List activity log entries for an organization (Enterprise plan required). ' +
-    'Shows all actions taken in the organization.',
+    'List activity log entries for an organization. Requires Enterprise plan. ' +
+    'Returns 403 on non-Enterprise accounts.',
   examples: [
     'calendly activity-log list',
     'calendly activity-log list --from 2025-01-01T00:00:00Z --to 2025-01-31T23:59:59Z',
@@ -45,12 +45,26 @@ export const activityLogListCommand: CommandDefinition = {
     sort: 'query',
   },
   handler: async (input, client) => {
-    if (!input.organization) {
-      const { loadConfig } = await import('../../core/config.js');
-      const config = await loadConfig();
-      if (config.organization_uri) input = { ...input, organization: config.organization_uri };
+    const { loadConfig } = await import('../../core/config.js');
+    const config = await loadConfig();
+
+    // Activity log requires the full organization URI
+    if (!input.organization && config.organization_uri) {
+      input = { ...input, organization: config.organization_uri };
     }
-    return executeCommand(activityLogListCommand, input, client);
+
+    try {
+      return await executeCommand(activityLogListCommand, input, client);
+    } catch (err: any) {
+      // Provide a clear message for plan-gated access
+      if (err?.statusCode === 403 || err?.code === 'AUTH_ERROR') {
+        throw new Error(
+          'Activity log requires an Enterprise Calendly plan. ' +
+            `(Original error: ${err.message})`,
+        );
+      }
+      throw err;
+    }
   },
 };
 

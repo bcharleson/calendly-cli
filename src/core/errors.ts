@@ -11,7 +11,7 @@ export class CalendlyError extends Error {
 }
 
 export class AuthError extends CalendlyError {
-  constructor(message = 'Authentication failed. Run: calendly auth login') {
+  constructor(message = 'Authentication failed. Run: calendly login') {
     super(message, 'AUTH_ERROR', 401);
     this.name = 'AuthError';
   }

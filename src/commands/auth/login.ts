@@ -6,9 +6,11 @@ export function registerLoginCommand(program: Command): void {
   program
     .command('login')
     .description('Authenticate with your Calendly personal access token')
-    .option('--token <token>', 'Provide token non-interactively')
-    .action(async (opts) => {
-      let token = opts.token as string | undefined;
+    .action(async (_opts, cmd) => {
+      // Read --token from global options (defined on program) so it works
+      // regardless of whether it's passed before or after 'login'
+      const globalOpts = cmd.optsWithGlobals();
+      let token = globalOpts.token as string | undefined;
 
       if (!token) {
         try {
@@ -18,7 +20,9 @@ export function registerLoginCommand(program: Command): void {
             mask: '*',
           });
         } catch {
-          console.error('Interactive prompts not available. Use: calendly login --token <token>');
+          console.error(
+            'Interactive prompts not available. Use:\n  CALENDLY_TOKEN=<token> calendly login\n  or: calendly --token <token> login',
+          );
           process.exit(1);
         }
       }
@@ -34,7 +38,7 @@ export function registerLoginCommand(program: Command): void {
       let user: any;
       try {
         const res: any = await client.get('/users/me');
-        user = res.resource;
+        user = res.resource ?? res;
       } catch (err: any) {
         console.error(`Authentication failed: ${err.message}`);
         process.exit(1);
@@ -50,12 +54,18 @@ export function registerLoginCommand(program: Command): void {
         organization_uri: user.current_organization,
       });
 
-      console.log(JSON.stringify({
-        status: 'authenticated',
-        name: user.name,
-        email: user.email,
-        user_uri: user.uri,
-        organization_uri: user.current_organization,
-      }, null, 2));
+      console.log(
+        JSON.stringify(
+          {
+            status: 'authenticated',
+            name: user.name,
+            email: user.email,
+            user_uri: user.uri,
+            organization_uri: user.current_organization,
+          },
+          null,
+          2,
+        ),
+      );
     });
 }
