@@ -155,8 +155,45 @@ export const inviteesCreateCommand: CommandDefinition = {
   },
 };
 
+export const noShowCreateCommand: CommandDefinition = {
+  name: 'no_show_create',
+  group: 'invitees',
+  subcommand: 'no-show',
+  description: 'Mark an invitee as a no-show',
+  examples: ['calendly invitees no-show abc123def456'],
+  inputSchema: z.object({
+    uuid: z.string().describe('Invitee UUID'),
+  }),
+  cliMappings: {
+    args: [{ field: 'uuid', name: 'uuid', required: true }],
+  },
+  endpoint: { method: 'POST', path: '/invitee_no_shows' },
+  fieldMappings: {},
+  handler: async (input, client) =>
+    client.post('/invitee_no_shows', { invitee: `https://api.calendly.com/invitees/${input.uuid}` }),
+};
+
+export const noShowDeleteCommand: CommandDefinition = {
+  name: 'no_show_delete',
+  group: 'invitees',
+  subcommand: 'undo-no-show',
+  description: 'Remove the no-show mark from an invitee',
+  examples: ['calendly invitees undo-no-show abc123def456'],
+  inputSchema: z.object({
+    uuid: z.string().describe('No-show UUID (from the no_show object, not invitee UUID)'),
+  }),
+  cliMappings: {
+    args: [{ field: 'uuid', name: 'uuid', required: true }],
+  },
+  endpoint: { method: 'DELETE', path: '/invitee_no_shows/{uuid}' },
+  fieldMappings: { uuid: 'path' },
+  handler: (input, client) => executeCommand(noShowDeleteCommand, input, client),
+};
+
 export const inviteesCommands: CommandDefinition[] = [
   inviteesListCommand,
   inviteesGetCommand,
   inviteesCreateCommand,
+  noShowCreateCommand,
+  noShowDeleteCommand,
 ];

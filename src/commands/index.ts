@@ -14,6 +14,11 @@ import { scheduledEventsCommands } from './scheduled-events/index.js';
 import { inviteesCommands } from './invitees/index.js';
 import { availabilityCommands } from './availability/index.js';
 import { webhooksCommands } from './webhooks/index.js';
+import { routingFormsCommands } from './routing-forms/index.js';
+import { schedulingLinksCommands } from './scheduling-links/index.js';
+import { groupsCommands } from './groups/index.js';
+import { dataComplianceCommands } from './data-compliance/index.js';
+import { activityLogCommands } from './activity-log/index.js';
 
 export const allCommands: CommandDefinition[] = [
   ...usersCommands,
@@ -23,6 +28,11 @@ export const allCommands: CommandDefinition[] = [
   ...inviteesCommands,
   ...availabilityCommands,
   ...webhooksCommands,
+  ...routingFormsCommands,
+  ...schedulingLinksCommands,
+  ...groupsCommands,
+  ...dataComplianceCommands,
+  ...activityLogCommands,
 ];
 
 export function registerAllCommands(program: Command): void {
