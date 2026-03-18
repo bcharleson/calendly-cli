@@ -1,0 +1,80 @@
+import { z } from 'zod';
+import { executeCommand } from '../../core/handler.js';
+import type { CommandDefinition } from '../../core/types.js';
+
+export const eventTypesListCommand: CommandDefinition = {
+  name: 'event_types_list',
+  group: 'event-types',
+  subcommand: 'list',
+  description:
+    'List event types for a user or organization. Defaults to your own event types.',
+  examples: [
+    'calendly event-types list',
+    'calendly event-types list --active',
+    'calendly event-types list --organization https://api.calendly.com/organizations/abc123',
+    'calendly event-types list --count 50',
+  ],
+  inputSchema: z.object({
+    user: z.string().optional().describe('User URI (defaults to authenticated user)'),
+    organization: z.string().optional().describe('Organization URI'),
+    active: z.boolean().optional().describe('Filter to active event types only'),
+    count: z.coerce.number().min(1).max(100).optional().describe('Results per page (max 100)'),
+    page_token: z.string().optional().describe('Pagination token'),
+    sort: z.string().optional().describe('Sort order (e.g. created_at:desc)'),
+    admin_managed: z.boolean().optional().describe('Filter to admin-managed event types'),
+  }),
+  cliMappings: {
+    options: [
+      { field: 'user', flags: '--user <uri>', description: 'User URI' },
+      { field: 'organization', flags: '--organization <uri>', description: 'Organization URI' },
+      { field: 'active', flags: '--active', description: 'Active event types only' },
+      { field: 'count', flags: '--count <number>', description: 'Results per page' },
+      { field: 'page_token', flags: '--page-token <token>', description: 'Pagination token' },
+      { field: 'sort', flags: '--sort <order>', description: 'Sort (e.g. created_at:desc)' },
+      { field: 'admin_managed', flags: '--admin-managed', description: 'Admin-managed only' },
+    ],
+  },
+  endpoint: { method: 'GET', path: '/event_types' },
+  fieldMappings: {
+    user: 'query',
+    organization: 'query',
+    active: 'query',
+    count: 'query',
+    page_token: 'query',
+    sort: 'query',
+    admin_managed: 'query',
+  },
+  handler: async (input, client) => {
+    // Auto-resolve user URI from config if neither user nor org provided
+    if (!input.user && !input.organization) {
+      const { loadConfig } = await import('../../core/config.js');
+      const config = await loadConfig();
+      if (config.user_uri) {
+        input = { ...input, user: config.user_uri };
+      }
+    }
+    return executeCommand(eventTypesListCommand, input, client);
+  },
+};
+
+export const eventTypesGetCommand: CommandDefinition = {
+  name: 'event_types_get',
+  group: 'event-types',
+  subcommand: 'get',
+  description: 'Get a specific event type by UUID',
+  examples: ['calendly event-types get abc123def456'],
+  inputSchema: z.object({
+    uuid: z.string().describe('Event type UUID'),
+  }),
+  cliMappings: {
+    args: [{ field: 'uuid', name: 'uuid', required: true }],
+  },
+  endpoint: { method: 'GET', path: '/event_types/{uuid}' },
+  fieldMappings: { uuid: 'path' },
+  handler: (input, client) => executeCommand(eventTypesGetCommand, input, client),
+};
+
+export const eventTypesCommands: CommandDefinition[] = [
+  eventTypesListCommand,
+  eventTypesGetCommand,
+];
