@@ -28,6 +28,10 @@ function pickFields(data: unknown, fields: string[]): unknown {
   }
   if (data !== null && typeof data === 'object') {
     const obj = data as Record<string, unknown>;
+    // Unwrap single-resource wrapper (e.g. { resource: { name, email } })
+    if ('resource' in obj && obj.resource !== null && typeof obj.resource === 'object' && !Array.isArray(obj.resource)) {
+      return pickFields(obj.resource, fields);
+    }
     // Check for paginated response with collection key
     const collectionKey = Object.keys(obj).find(
       (k) => Array.isArray(obj[k]) && !['warnings', 'errors'].includes(k),
