@@ -32,16 +32,11 @@ function pickFields(data: unknown, fields: string[]): unknown {
     if ('resource' in obj && obj.resource !== null && typeof obj.resource === 'object' && !Array.isArray(obj.resource)) {
       return pickFields(obj.resource, fields);
     }
-    // Check for paginated response with collection key
-    const collectionKey = Object.keys(obj).find(
-      (k) => Array.isArray(obj[k]) && !['warnings', 'errors'].includes(k),
-    );
-    if (collectionKey) {
+    // Check for Calendly paginated list response ({ collection: [...], pagination: {...} })
+    if ('collection' in obj && Array.isArray(obj.collection)) {
       return {
         ...obj,
-        [collectionKey]: (obj[collectionKey] as unknown[]).map((item) =>
-          pickFields(item, fields),
-        ),
+        collection: (obj.collection as unknown[]).map((item) => pickFields(item, fields)),
       };
     }
     const out: Record<string, unknown> = {};
